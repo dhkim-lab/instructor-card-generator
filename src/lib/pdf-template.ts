@@ -169,11 +169,11 @@ export function getInstructorCardHtml(data: InstructorData): string {
     }
 
     .section {
-      display: inline-block;
+      display: block;
       width: 100%;
       margin-bottom: 7mm;
-      break-inside: avoid;
-      page-break-inside: avoid;
+      break-inside: auto;
+      page-break-inside: auto;
     }
 
     /* 표 기반 섹션은 행 단위로 분리 허용 */
@@ -193,6 +193,7 @@ export function getInstructorCardHtml(data: InstructorData): string {
       margin-bottom: 4mm;
       break-after: avoid;
       page-break-after: avoid;
+      break-inside: avoid;
     }
 
     .section-content {
@@ -249,6 +250,7 @@ export function getInstructorCardHtml(data: InstructorData): string {
       gap: 8px;
       margin-bottom: 4px;
       line-height: 1.6;
+      break-inside: avoid;
     }
     .bullet-item {
       color: #3f3f46;
@@ -257,6 +259,7 @@ export function getInstructorCardHtml(data: InstructorData): string {
       margin-bottom: 4px;
       line-height: 1.6;
       font-size: 12px;
+      break-inside: avoid;
     }
     .bullet { color: #3346FF; flex-shrink: 0; }
     .project-item {
