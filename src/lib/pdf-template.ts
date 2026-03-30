@@ -169,6 +169,8 @@ export function getInstructorCardHtml(data: InstructorData): string {
     }
 
     .section {
+      display: inline-block;
+      width: 100%;
       margin-bottom: 7mm;
       break-inside: avoid;
       page-break-inside: avoid;
@@ -176,6 +178,7 @@ export function getInstructorCardHtml(data: InstructorData): string {
 
     /* 표 기반 섹션은 행 단위로 분리 허용 */
     .section-table {
+      display: block;
       break-inside: auto;
       page-break-inside: auto;
     }
