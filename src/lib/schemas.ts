@@ -25,6 +25,11 @@ export const CustomSectionSchema = z.object({
   items: z.array(z.string()),
 });
 
+export const LectureHistoryItemSchema = z.object({
+  period: z.string(),
+  content: z.string(),
+});
+
 export const InstructorDataSchema = z.object({
   name: z.string(),
   title: z.string(), // 전문 분야 요약 (영문 권장)
@@ -35,8 +40,10 @@ export const InstructorDataSchema = z.object({
   projects: z.array(ProjectSchema).optional(),
   exhibitions: z.array(z.string()).optional(),
   extras: z.array(z.string()).optional(),
-  lectureHistory: z.array(z.string()).optional(),
+  lectureHistory: z.array(LectureHistoryItemSchema).optional(),
   customSections: z.array(CustomSectionSchema).optional(),
 });
+
+export type LectureHistoryItem = z.infer<typeof LectureHistoryItemSchema>;
 
 export type InstructorData = z.infer<typeof InstructorDataSchema>;

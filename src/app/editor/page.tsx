@@ -19,7 +19,7 @@ const DEFAULT_DATA: InstructorData = {
   projects: [],
   exhibitions: [],
   extras: [],
-  lectureHistory: [],
+  lectureHistory: [] as { period: string; content: string }[],
   customSections: [],
 };
 

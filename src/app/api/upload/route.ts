@@ -225,7 +225,9 @@ async function extractWithAI(text: string) {
   ],
   "exhibitions": ["전시 또는 심사 이력 텍스트 리스트"],
   "extras": ["앰배서더, 산학협력 등 기타 이력"],
-  "lectureHistory": ["강의 이력 텍스트 리스트"],
+  "lectureHistory": [
+    { "period": "YYYY.MM 또는 YYYY.MM~MM 등 기간", "content": "강의명 및 기관명" }
+  ],
   "customSections": [
     { "title": "섹션 제목", "items": ["항목1", "항목2"] }
   ]

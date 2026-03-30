@@ -92,16 +92,27 @@ export function getInstructorCardHtml(data: InstructorData): string {
           `).join('')}        </div>
       </section>` : '';
 
-  const lectureHtml = data.lectureHistory && data.lectureHistory.length > 0 && data.lectureHistory.some(e => e)
+  const lectureHtml = data.lectureHistory && data.lectureHistory.length > 0
     ? `<section class="section">
         <h3 class="section-title">강의 이력</h3>
         <div class="section-content">
-          ${data.lectureHistory.filter(e => e).map(item => `
-            <div class="bullet-item">
-              <span class="bullet">•</span>
-              <span>${item}</span>
-            </div>
-          `).join('')}        </div>
+          <table class="exp-table">
+            <thead>
+              <tr>
+                <th style="width: 22%;">기간</th>
+                <th>강의 내용</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.lectureHistory.map(item => `
+                <tr>
+                  <td style="color: #71717a; font-weight: 500;">${item.period}</td>
+                  <td style="color: #3f3f46;">${item.content}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
       </section>` : '';
 
   const customSectionsHtml = data.customSections && data.customSections.length > 0
@@ -173,6 +184,8 @@ export function getInstructorCardHtml(data: InstructorData): string {
 
     .section-content {
       padding-left: 2mm;
+      break-before: avoid;
+      page-break-before: avoid;
     }
 
     /* Profile */
