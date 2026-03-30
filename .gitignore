@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude/AI agent workspace
+.claude/
+
+# Example files (contain personal data - do not commit)
+/example/
