@@ -34,7 +34,7 @@ export function getInstructorCardHtml(data: InstructorData): string {
           <table class="exp-table">
             <thead>
               <tr>
-                <th style="width: 35%;">기간</th>
+                <th style="width: 25%;">기간</th>
                 <th>소속 및 직위</th>
               </tr>
             </thead>
@@ -104,12 +104,14 @@ export function getInstructorCardHtml(data: InstructorData): string {
               </tr>
             </thead>
             <tbody>
-              ${data.lectureHistory.map(item => `
-                <tr>
-                  <td style="color: #71717a; font-weight: 500;">${item.period}</td>
-                  <td style="color: #3f3f46;">${item.content}</td>
-                </tr>
-              `).join('')}
+              ${data.lectureHistory.map(item => {
+                const period = typeof item === 'string' ? '' : item.period;
+                const content = typeof item === 'string' ? item : item.content;
+                return `<tr>
+                  <td style="color: #71717a; font-weight: 500;">${period}</td>
+                  <td style="color: #3f3f46;">${content}</td>
+                </tr>`;
+              }).join('')}
             </tbody>
           </table>
         </div>
@@ -272,12 +274,12 @@ export function getInstructorCardHtml(data: InstructorData): string {
       </div>
     </section>
 
-    ${educationHtml}
     ${experiencesHtml}
+    ${lectureHtml}
+    ${educationHtml}
     ${projectsHtml}
     ${exhibitionsHtml}
     ${extrasHtml}
-    ${lectureHtml}
     ${customSectionsHtml}
   </div>
 </body>
