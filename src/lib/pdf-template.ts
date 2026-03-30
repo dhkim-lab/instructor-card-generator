@@ -22,7 +22,7 @@ export function getInstructorCardHtml(data: InstructorData): string {
           ${data.education.filter(e => e.school).map(edu => `
             <div class="list-item">
               <span style="font-weight: bold; color: #27272a;">${edu.school}</span>
-              <span style="color: #71717a;">${edu.major} ${edu.degree} (${edu.status})</span>
+              <span style="color: #71717a;">${[edu.major, edu.degree, edu.status].filter(Boolean).join(' ')}</span>
             </div>
           `).join('')}        </div>
       </section>` : '';
