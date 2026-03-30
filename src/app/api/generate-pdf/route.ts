@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (downloadOnly) {
       const dateStr = new Date().toISOString().split("T")[0].replace(/-/g, "");
       const fileName = `[팀제이커브] 강사프로필_${data.name || "신규강사"}_${dateStr}.pdf`;
-      return new NextResponse(pdfBuffer, {
+      return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
