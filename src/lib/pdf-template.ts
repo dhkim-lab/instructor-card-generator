@@ -28,7 +28,7 @@ export function getInstructorCardHtml(data: InstructorData): string {
       </section>` : '';
 
   const experiencesHtml = data.experiences && data.experiences.length > 0 && data.experiences.some(e => e.company)
-    ? `<section class="section">
+    ? `<section class="section section-table">
         <h3 class="section-title">주요 경력</h3>
         <div class="section-content">
           <table class="exp-table">
@@ -93,7 +93,7 @@ export function getInstructorCardHtml(data: InstructorData): string {
       </section>` : '';
 
   const lectureHtml = data.lectureHistory && data.lectureHistory.length > 0
-    ? `<section class="section">
+    ? `<section class="section section-table">
         <h3 class="section-title">강의 이력</h3>
         <div class="section-content">
           <table class="exp-table">
@@ -170,6 +170,14 @@ export function getInstructorCardHtml(data: InstructorData): string {
 
     .section {
       margin-bottom: 7mm;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* 표 기반 섹션은 행 단위로 분리 허용 */
+    .section-table {
+      break-inside: auto;
+      page-break-inside: auto;
     }
 
     .section-title {
