@@ -49,6 +49,13 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("Text length:", text.length, "Profile image:", profileImageUrl ? "found" : "none");
+    
+    // --- API Token Efficiency (효율화): Truncate text to avoid excessive token costs ---
+    if (text.length > 15000) {
+      console.log(`Truncating text from ${text.length} to 15,000 characters for token efficiency.`);
+      text = text.substring(0, 15000) + "... [최적화를 위해 일부 생략됨]";
+    }
+
     if (!text || text.trim().length < 10) {
       return NextResponse.json(
         { error: "파일에서 텍스트를 추출할 수 없습니다." },
@@ -189,67 +196,42 @@ async function parsePptx(buffer: Buffer): Promise<string> {
 
 // ─── AI Extraction with Retry ────────────────────────────────────
 
-async function extractWithAIRetry(text: string, maxRetries = 3) {
+async function extractWithAIRetry(text: string, maxRetries = 2) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await extractWithAI(text);
     } catch (error: any) {
       const status = error?.status || error?.code;
       const isRetryable = status === 529 || status === 500 || status === 503;
-      console.warn(`AI extraction attempt ${attempt}/${maxRetries} failed (status: ${status})`);
+      console.warn(`AI attempt ${attempt}/${maxRetries} failed: ${status}`);
       if (!isRetryable || attempt === maxRetries) throw error;
-      // Exponential backoff: 2s, 4s, 8s
-      await new Promise((r) => setTimeout(r, 2000 * Math.pow(2, attempt - 1)));
+      await new Promise((r) => setTimeout(r, 2000)); // Fixed 2s delay
     }
   }
-  throw new Error("AI extraction failed after retries");
+  throw new Error("AI extraction failed");
 }
 
 async function extractWithAI(text: string) {
-  const prompt = `당신은 팀제이커브(TEAM J-CURVE)의 강사 카드 생성을 돕는 도우미입니다.
-제공된 강사 프로필 텍스트 파일 내용을 분석하여 아래 JSON 스키마에 맞춰 정보를 추출하세요.
-
-[JSON 스키마]
+  // --- Token Efficiency (효율화): Concise Instruction & Schema ---
+  const prompt = `강사 프로필 텍스트를 분석하여 아래 JSON 스키마로 정보를 추출하세요. JSON으로만 응답하세요.
+Schema:
 {
-  "name": "강사 성함",
-  "title": "핵심 분야(예: AI 아티스트, 게임 기획자 등 영문 및 한글 조합)",
-  "summary": "1~2문장의 전문성 요약 소개글",
-  "education": [
-    { "degree": "학위(학사, 석사 등)", "school": "학교명", "major": "전공", "status": "졸업/수료" }
-  ],
-  "experiences": [
-    { "period": "YYYY.MM - YYYY.MM", "company": "소속/기관", "position": "직무/직함" }
-  ],
-  "projects": [
-    { "name": "프로젝트/작품명", "period": "기간", "role": "역할", "description": "설명" }
-  ],
-  "exhibitions": ["전시 또는 심사 이력 텍스트 리스트"],
-  "extras": ["앰배서더, 산학협력 등 기타 이력"],
-  "lectureHistory": [
-    { "period": "YYYY.MM 또는 YYYY.MM~MM 등 기간", "content": "강의명 및 기관명" }
-  ],
-  "customSections": [
-    { "title": "섹션 제목", "items": ["항목1", "항목2"] }
-  ]
+  "name": "성함", "title": "핵심분야(한/영)", "summary": "1~2문장 요약",
+  "education": [{ "degree": "학위", "school": "학교", "major": "전공", "status": "졸업/수료" }],
+  "experiences": [{ "period": "YYYY.MM-YYYY.MM", "company": "기관", "position": "직무" }],
+  "projects": [{ "name": "프로젝트명", "period": "기간", "description": "설명" }],
+  "exhibitions": ["전시 텍스트"], "extras": ["기타 경력"],
+  "lectureHistory": [{ "period": "기간", "content": "강의명" }],
+  "customSections": [{ "title": "섹션명", "items": ["항목"] }]
 }
-
-[주의사항]
-1. 반드시 JSON 형식으로만 응답하세요. 다른 부연 설명은 하지 마세요.
-2. 텍스트에서 명확하게 확인되지 않는 정보는 추측하지 말고 빈 문자열이나 빈 배열로 두세요.
-3. 날짜 형식은 가능한 한 'YYYY.MM' 형식을 유지해 주세요.
-4. "name" 필드는 반드시 채워주세요. 한국어 이름(예: 홍길동, 심원문)을 우선 찾으세요.
-5. **customSections**: 위의 고정 항목(학력, 경력, 프로젝트, 전시, 기타, 강의)에 해당하지 않는 정보가 있으면 적절한 섹션 제목을 직접 생성하여 customSections에 넣으세요.
-   예: "수상 이력", "자격증 및 인증", "저서 및 출판", "미디어 출연", "봉사 활동", "연구 실적" 등
-   고정 항목에 이미 포함된 내용은 customSections에 중복하지 마세요.
-6. **연락처 정보는 절대 포함 금지**: 전화번호, 이메일 주소, LinkedIn URL, SNS 계정, 홈페이지 주소 등 개인 연락처 정보는 어떤 필드에도 넣지 마세요. "연락처" 섹션을 만들지 마세요.
-
-[강사 프로필 원본 텍스트]
-${text}
-`;
+Rules:
+1. 이름(name)은 한국어 우선. 2. 날짜는 'YYYY.MM' 유지. 3. 연락처 정보(번호, 이메일, SNS) 절대 제외. 4. 고정 항목 외 정보는 customSections.
+텍스트:
+${text}`;
 
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4096,
+    model: "claude-3-5-haiku-latest", // Use Haiku for faster & cheaper processing
+    max_tokens: 2048,
     messages: [{ role: "user", content: prompt }],
   });
 
@@ -260,6 +242,6 @@ ${text}
   } catch {
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) return JSON.parse(jsonMatch[0]);
-    throw new Error("Failed to parse AI response as JSON");
+    throw new Error("Invalid output format");
   }
 }

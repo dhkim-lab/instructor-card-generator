@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clean": "rm -rf .next .vercel tsconfig.tsbuildinfo node_modules/.cache"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
