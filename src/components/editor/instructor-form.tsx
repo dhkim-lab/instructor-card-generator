@@ -11,12 +11,48 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, GraduationCap, Briefcase, Trophy, Presentation, ImagePlus } from "lucide-react";
+import { Plus, Trash2, GraduationCap, Briefcase, Trophy, Presentation, ImagePlus, History, Library, Star } from "lucide-react";
 import { useCallback, useRef } from "react";
 
 interface InstructorFormProps {
   initialData: Partial<InstructorData>;
   onChange: (data: Partial<InstructorData>) => void;
+}
+
+// Helper for nested custom section items
+function CustomItems({ index, control, register }: { index: number; control: any; register: any }) {
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `customSections.${index}.items` as any,
+  });
+
+  return (
+    <div className="grid gap-2">
+      {fields.map((field, iIdx) => (
+        <div key={field.id} className="flex gap-2">
+          <Input {...register(`customSections.${index}.items.${iIdx}`)} placeholder="항목 내용을 입력하세요." />
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="icon" 
+            className="flex-shrink-0 text-destructive"
+            onClick={() => remove(iIdx)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ))}
+      <Button 
+        type="button" 
+        variant="ghost" 
+        size="sm" 
+        className="w-fit text-xs h-7"
+        onClick={() => append("")}
+      >
+        <Plus className="h-3 w-3 mr-1" /> 항목 추가
+      </Button>
+    </div>
+  );
 }
 
 export function InstructorForm({ initialData, onChange }: InstructorFormProps) {
@@ -51,14 +87,12 @@ export function InstructorForm({ initialData, onChange }: InstructorFormProps) {
       exhibitions: initialData.exhibitions || [],
       extras: initialData.extras || [],
       lectureHistory: initialData.lectureHistory || [],
+      customSections: initialData.customSections || [],
     },
   });
 
   // Watch form changes to update preview
   const formData = watch();
-  // React to changes (could be debounced if performance issues)
-  // useEffect(() => { onChange(formData as InstructorData); }, [formData, onChange]);
-  // Since we want "real-time", let's pass it up on every change in the editor page
 
   const { fields: eduFields, append: appendEdu, remove: removeEdu } = useFieldArray({
     control,
@@ -73,6 +107,26 @@ export function InstructorForm({ initialData, onChange }: InstructorFormProps) {
   const { fields: projFields, append: appendProj, remove: removeProj } = useFieldArray({
     control,
     name: "projects",
+  });
+
+  const { fields: lectureFields, append: appendLecture, remove: removeLecture } = useFieldArray({
+    control,
+    name: "lectureHistory",
+  });
+
+  const { fields: exhibitionFields, append: appendExhibition, remove: removeExhibition } = useFieldArray({
+    control,
+    name: "exhibitions",
+  });
+
+  const { fields: extraFields, append: appendExtra, remove: removeExtra } = useFieldArray({
+    control,
+    name: "extras",
+  });
+
+  const { fields: customFields, append: appendCustom, remove: removeCustom } = useFieldArray({
+    control,
+    name: "customSections",
   });
 
   return (
@@ -131,6 +185,46 @@ export function InstructorForm({ initialData, onChange }: InstructorFormProps) {
                 <Label htmlFor="summary">프로필 전체 요약</Label>
                 <Textarea id="summary" {...register("summary")} placeholder="1~2문장으로 핵심 강점을 요약하세요." rows={3} />
               </div>
+            </div>
+          </section>
+
+          {/* 대표 강의 이력 (Moved up for visibility and better UX) */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-[#3346FF] flex items-center gap-2">
+                <History className="h-4 w-4" /> 대표 강의 이력
+              </h3>
+              <Button type="button" variant="outline" size="sm" onClick={() => appendLecture({ period: "", content: "" })}>
+                <Plus className="h-4 w-4 mr-1" /> 추가
+              </Button>
+            </div>
+            <div className="grid gap-4">
+              {lectureFields.map((field, index) => (
+                <div key={field.id} className="grid gap-3 p-4 bg-white rounded-lg border relative group shadow-sm">
+                  <div className="grid gap-2">
+                    <Label className="text-xs text-zinc-500">기간</Label>
+                    <Input {...register(`lectureHistory.${index}.period`)} placeholder="2023 - 현재" className="h-8" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-xs text-zinc-500">강의 내용</Label>
+                    <Textarea 
+                      {...register(`lectureHistory.${index}.content`)} 
+                      placeholder="강의 주제 및 대상을 상세히 입력하세요." 
+                      rows={2}
+                      className="resize-none"
+                    />
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-white border opacity-0 group-hover:opacity-100 transition-opacity shadow-sm text-destructive hover:bg-destructive hover:text-white"
+                    onClick={() => removeLecture(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
           </section>
 
@@ -263,27 +357,101 @@ export function InstructorForm({ initialData, onChange }: InstructorFormProps) {
             ))}
           </section>
 
-          {/* 동적 섹션 (AI 추출) */}
-          {initialData.customSections && initialData.customSections.length > 0 && (
-            <>
-              <Separator />
-              <section className="space-y-4 pb-12">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-2">
-                  <Presentation className="h-4 w-4" /> AI 추출 섹션
-                </h3>
-                {initialData.customSections.map((section, sIdx) => (
-                  <div key={sIdx} className="p-4 bg-white rounded-lg border space-y-2">
-                    <Label className="text-sm font-semibold text-zinc-700">{section.title}</Label>
-                    {section.items.map((item, iIdx) => (
-                      <div key={iIdx} className="text-sm text-zinc-600 pl-2 border-l-2 border-zinc-100">
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </section>
-            </>
-          )}
+
+          <Separator />
+
+          {/* 전시 / 심사 이력 */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-2">
+                <Library className="h-4 w-4" /> 전시 / 심사 이력
+              </h3>
+              <Button type="button" variant="outline" size="sm" onClick={() => appendExhibition({ value: "" })}>
+                <Plus className="h-4 w-4 mr-1" /> 추가
+              </Button>
+            </div>
+            <div className="grid gap-3">
+              {exhibitionFields.map((field, index) => (
+                <div key={field.id} className="flex gap-2 group relative">
+                  <Input {...register(`exhibitions.${index}.value`)} placeholder="이력 내용을 입력하세요." />
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="flex-shrink-0 text-destructive hover:bg-destructive hover:text-white"
+                    onClick={() => removeExhibition(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* 기타 이력 */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-2">
+                <Star className="h-4 w-4" /> 기타 이력
+              </h3>
+              <Button type="button" variant="outline" size="sm" onClick={() => appendExtra({ value: "" })}>
+                <Plus className="h-4 w-4 mr-1" /> 추가
+              </Button>
+            </div>
+            <div className="grid gap-3">
+              {extraFields.map((field, index) => (
+                <div key={field.id} className="flex gap-2 group relative">
+                  <Input {...register(`extras.${index}.value`)} placeholder="기타 활동 내용을 입력하세요." />
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="flex-shrink-0 text-destructive hover:bg-destructive hover:text-white"
+                    onClick={() => removeExtra(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* 커스텀 섹션 */}
+          <section className="space-y-4 pb-20">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-2">
+                <Presentation className="h-4 w-4" /> 추가 섹션
+              </h3>
+              <Button type="button" variant="outline" size="sm" onClick={() => appendCustom({ title: "", items: [""] })}>
+                <Plus className="h-4 w-4 mr-1" /> 섹션 추가
+              </Button>
+            </div>
+            {customFields.map((field, index) => (
+              <div key={field.id} className="p-4 bg-white rounded-lg border space-y-4 relative group">
+                <div className="grid gap-2">
+                  <Label>섹션 제목</Label>
+                  <Input {...register(`customSections.${index}.title`)} placeholder="예: 주요 저서, 자격 사항 등" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>항목 리스트</Label>
+                  <CustomItems index={index} control={control} register={register} />
+                </div>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="icon" 
+                  className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-white border opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive hover:text-white"
+                  onClick={() => removeCustom(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </section>
         </form>
       </div>
     </div>

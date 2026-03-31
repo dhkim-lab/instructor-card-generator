@@ -69,24 +69,8 @@ async function generatePdf(html: string): Promise<Buffer> {
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "28mm", right: "12mm", bottom: "22mm", left: "12mm" },
-      displayHeaderFooter: true,
-      headerTemplate: `
-        <div style="width: 100%; padding: 4mm 10mm 2mm 10mm; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #f4f4f5; font-family: 'Nanum Gothic', sans-serif;">
-          <span style="font-size: 11px; color: #3346FF; font-weight: 900; letter-spacing: -0.05em;">TEAM J-CURVE</span>
-          <span style="font-size: 7px; color: #a1a1aa; font-weight: 500;">팀제이커브 강사 프로필</span>
-        </div>
-      `,
-      footerTemplate: `
-        <div style="width: 100%; padding: 0 10mm; display: flex; justify-content: space-between; align-items: center; font-family: 'Nanum Gothic', sans-serif;">
-          <span style="font-size: 8px; color: #a1a1aa; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em;">
-            (주) 팀제이커브 | <span style="color: #3346FF;">CONFIDENTIAL</span>
-          </span>
-          <span style="font-size: 8px; color: #a1a1aa; font-weight: bold;">
-            <span class="pageNumber"></span> / <span class="totalPages"></span>
-          </span>
-        </div>
-      `,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      displayHeaderFooter: false,
     });
 
     return Buffer.from(pdf);

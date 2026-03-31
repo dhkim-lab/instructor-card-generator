@@ -68,33 +68,33 @@ export function getInstructorCardHtml(data: InstructorData): string {
           `).join('')}        </div>
       </section>` : '';
 
-  const exhibitionsHtml = data.exhibitions && data.exhibitions.length > 0 && data.exhibitions.some(e => e)
+  const exhibitionsHtml = data.exhibitions && data.exhibitions.length > 0 && data.exhibitions.some(e => e.value)
     ? `<section class="section">
         <h3 class="section-title">전시 / 심사 이력</h3>
         <div class="section-content">
-          ${data.exhibitions.filter(e => e).map(item => `
+          ${data.exhibitions.filter(e => e.value).map(item => `
             <div class="bullet-item">
               <span class="bullet">•</span>
-              <span>${item}</span>
+              <span>${item.value}</span>
             </div>
           `).join('')}        </div>
       </section>` : '';
 
-  const extrasHtml = data.extras && data.extras.length > 0 && data.extras.some(e => e)
+  const extrasHtml = data.extras && data.extras.length > 0 && data.extras.some(e => e.value)
     ? `<section class="section">
         <h3 class="section-title">기타 이력</h3>
         <div class="section-content">
-          ${data.extras.filter(e => e).map(item => `
+          ${data.extras.filter(e => e.value).map(item => `
             <div class="bullet-item">
               <span class="bullet">•</span>
-              <span>${item}</span>
+              <span>${item.value}</span>
             </div>
           `).join('')}        </div>
       </section>` : '';
 
   const lectureHtml = data.lectureHistory && data.lectureHistory.length > 0
     ? `<section class="section section-table">
-        <h3 class="section-title">강의 이력</h3>
+        <h3 class="section-title">대표 강의 이력</h3>
         <div class="section-content">
           <table class="exp-table">
             <thead>
@@ -105,8 +105,8 @@ export function getInstructorCardHtml(data: InstructorData): string {
             </thead>
             <tbody>
               ${data.lectureHistory.map(item => {
-                const period = typeof item === 'string' ? '' : item.period;
-                const content = typeof item === 'string' ? item : item.content;
+                const period = item.period;
+                const content = item.content;
                 return `<tr>
                   <td style="color: #71717a; font-weight: 500;">${period}</td>
                   <td style="color: #3f3f46;">${content}</td>
@@ -141,12 +141,64 @@ export function getInstructorCardHtml(data: InstructorData): string {
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Nanum Gothic', sans-serif;
       color: #18181b;
       font-size: 13px;
       line-height: 1.6;
+      background-color: white;
+      counter-reset: page;
+    }
+
+    /* Table-based pagination structure (Syncs Preview and PDF) */
+    .page-container {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .page-header-space { height: 28mm; }
+    .page-footer-space { height: 22mm; }
+
+    .page-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 28mm;
+      padding: 10mm 15mm 4mm 15mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 2px solid #f4f4f5;
+      background: white;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .page-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 22mm;
+      padding: 0 15mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .page-number::after {
+      counter-increment: page;
+      content: counter(page);
+    }
+
+    /* Content Margin simulation */
+    .content-wrapper {
+      padding: 0 15mm;
     }
 
     .blue-bar {
@@ -199,7 +251,6 @@ export function getInstructorCardHtml(data: InstructorData): string {
     .section-content {
       padding-left: 2mm;
       break-before: avoid;
-      page-break-before: avoid;
     }
 
     /* Profile */
@@ -231,17 +282,26 @@ export function getInstructorCardHtml(data: InstructorData): string {
       font-size: 12px;
       border-collapse: collapse;
     }
+    .exp-table thead {
+      display: table-header-group;
+    }
     .exp-table thead tr {
       background-color: #0a0a2e;
       color: white;
       text-align: left;
     }
-    .exp-table th { padding: 6px 10px; font-weight: 500; font-size: 12px; }
-    .exp-table td { padding: 7px 10px; }
+    .exp-table th { padding: 8px 10px; font-weight: 700; font-size: 13px; }
+    .exp-table td { padding: 9px 10px; vertical-align: top; }
     .exp-table tbody tr {
-      border-bottom: 1px solid #f4f4f5;
+      border-bottom: 2px solid #f8f9fa;
       break-inside: avoid;
       page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    /* Ensure section flow doesn't overlap header */
+    .section {
+      margin-top: 0;
+      padding-top: 1px; /* Prevent margin collapsing */
     }
 
     /* Items */
@@ -270,32 +330,60 @@ export function getInstructorCardHtml(data: InstructorData): string {
   </style>
 </head>
 <body>
-  <div class="blue-bar">
-    <img src="data:image/png;base64,${LOGO_BASE64}" alt="TEAM J-CURVE" />
+  <div class="page-header">
+    <span style="font-size: 11px; color: #3346FF; font-weight: 900; letter-spacing: -0.05em;">TEAM J-CURVE</span>
+    <span style="font-size: 7px; color: #a1a1aa; font-weight: 500;">팀제이커브 강사 프로필</span>
   </div>
 
-  <div class="content">
-    <section class="profile">
-      <div class="profile-image">
-        ${data.profileImageUrl
-          ? `<img src="${data.profileImageUrl}" />`
-          : `<span style="font-size: 8px; font-weight: bold; color: #d4d4d8; text-align: center;">Instructor<br>Profile</span>`}
-      </div>
-      <div>
-        <div class="profile-name">${data.name || "강사 성함"}</div>
-        <div class="profile-title">${data.title || "직함 / 전문 분야"}</div>
-        <div class="profile-summary">${data.summary || ""}</div>
-      </div>
-    </section>
-
-    ${experiencesHtml}
-    ${lectureHtml}
-    ${educationHtml}
-    ${projectsHtml}
-    ${exhibitionsHtml}
-    ${extrasHtml}
-    ${customSectionsHtml}
+  <div class="page-footer">
+    <span style="font-size: 8px; color: #a1a1aa; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em;">
+      (주) 팀제이커브 | <span style="color: #3346FF;">CONFIDENTIAL</span>
+    </span>
+    <span style="font-size: 8px; color: #a1a1aa; font-weight: bold;">
+      <span class="page-number"></span> / ${data.lectureHistory && data.lectureHistory.length > 10 ? '2' : '1'}
+    </span>
   </div>
+
+  <table class="page-container">
+    <thead>
+      <tr><td class="page-header-space"></td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <div class="content-wrapper">
+            <div class="blue-bar">
+              <img src="data:image/png;base64,${LOGO_BASE64}" alt="TEAM J-CURVE" />
+            </div>
+
+            <section class="profile">
+              <div class="profile-image">
+                ${data.profileImageUrl
+                  ? `<img src="${data.profileImageUrl}" />`
+                  : `<span style="font-size: 8px; font-weight: bold; color: #d4d4d8; text-align: center;">Instructor<br>Profile</span>`}
+              </div>
+              <div>
+                <div class="profile-name">${data.name || "강사 성함"}</div>
+                <div class="profile-title">${data.title || "직함 / 전문 분야"}</div>
+                <div class="profile-summary">${data.summary || ""}</div>
+              </div>
+            </section>
+
+            ${experiencesHtml}
+            ${lectureHtml}
+            ${educationHtml}
+            ${projectsHtml}
+            ${exhibitionsHtml}
+            ${extrasHtml}
+            ${customSectionsHtml}
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr><td class="page-footer-space"></td></tr>
+    </tfoot>
+  </table>
 </body>
 </html>
   `;

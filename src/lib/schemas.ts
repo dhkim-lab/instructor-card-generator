@@ -38,8 +38,8 @@ export const InstructorDataSchema = z.object({
   education: z.array(EducationSchema),
   experiences: z.array(ExperienceSchema),
   projects: z.array(ProjectSchema).optional(),
-  exhibitions: z.array(z.string()).optional(),
-  extras: z.array(z.string()).optional(),
+  exhibitions: z.array(z.object({ value: z.string() })).optional(),
+  extras: z.array(z.object({ value: z.string() })).optional(),
   lectureHistory: z.array(LectureHistoryItemSchema).optional(),
   customSections: z.array(CustomSectionSchema).optional(),
 });
